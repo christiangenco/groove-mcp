@@ -12,6 +12,7 @@ import { ConversationTools } from './tools/conversations.js';
 import { MessageTools } from './tools/messages.js';
 import { ContactTools } from './tools/contacts.js';
 import { AgentTools } from './tools/agents.js';
+import { ChannelTools } from './tools/channels.js';
 import { KnowledgeBaseResources } from './resources/kb-articles.js';
 
 const apiToken = process.env.GROOVE_API_TOKEN;
@@ -23,10 +24,11 @@ if (!apiToken) {
 }
 
 const grooveClient = new GrooveClient(apiToken, apiUrl);
-const conversationTools = new ConversationTools(grooveClient);
+const conversationTools = new ConversationTools(grooveClient, apiToken);
 const messageTools = new MessageTools(grooveClient);
 const contactTools = new ContactTools(grooveClient);
 const agentTools = new AgentTools(grooveClient);
+const channelTools = new ChannelTools(grooveClient);
 const kbResources = new KnowledgeBaseResources(grooveClient);
 
 const server = new Server(
@@ -51,18 +53,26 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         inputSchema: {
           type: 'object',
           properties: {
-            status: {
+            state: {
               type: 'string',
               enum: ['unread', 'opened', 'closed', 'snoozed'],
-              description: 'Filter by conversation status',
+              description: 'Filter by conversation state',
             },
-            assigneeId: {
+            assignedAgentId: {
               type: 'string',
               description: 'Filter by assigned agent ID',
+            },
+            assignedTeamId: {
+              type: 'string',
+              description: 'Filter by assigned team ID',
             },
             contactId: {
               type: 'string',
               description: 'Filter by contact ID',
+            },
+            channelId: {
+              type: 'string',
+              description: 'Filter by channel ID',
             },
             tagIds: {
               type: 'array',
@@ -109,9 +119,13 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               type: 'string',
               description: 'Initial message body',
             },
-            assigneeId: {
+            assignedAgentId: {
               type: 'string',
               description: 'ID of agent to assign the conversation to',
+            },
+            assignedTeamId: {
+              type: 'string',
+              description: 'ID of team to assign the conversation to',
             },
             tagIds: {
               type: 'array',
@@ -132,14 +146,18 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               type: 'string',
               description: 'The conversation ID',
             },
-            status: {
+            state: {
               type: 'string',
               enum: ['opened', 'closed', 'snoozed'],
-              description: 'New conversation status',
+              description: 'New conversation state',
             },
-            assigneeId: {
+            assignedAgentId: {
               type: 'string',
-              description: 'ID of agent to assign the conversation to (or null to unassign)',
+              description: 'ID of agent to assign the conversation to',
+            },
+            assignedTeamId: {
+              type: 'string',
+              description: 'ID of team to assign the conversation to',
             },
             tagIds: {
               type: 'array',
@@ -389,6 +407,34 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ['query'],
         },
       },
+      {
+        name: 'listChannels',
+        description: 'List all available channels/inboxes',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            limit: {
+              type: 'number',
+              description: 'Maximum number of channels to return',
+              default: 50,
+            },
+          },
+        },
+      },
+      {
+        name: 'getChannel',
+        description: 'Get detailed information about a specific channel',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              description: 'The channel ID',
+            },
+          },
+          required: ['id'],
+        },
+      },
     ],
   };
 });
@@ -477,7 +523,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         if (!args || typeof args.conversationId !== 'string') {
           throw new Error('Conversation ID is required');
         }
-        const messages = await messageTools.listMessages(args as any);
+        const messages = await conversationTools.listMessages(
+          args.conversationId, 
+          typeof args.limit === 'number' ? args.limit : undefined
+        );
         return {
           content: [
             {
@@ -630,6 +679,36 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             {
               type: 'text',
               text: JSON.stringify(articles, null, 2),
+            },
+          ],
+        };
+      }
+
+      case 'listChannels': {
+        const channels = await channelTools.listChannels(args || {});
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(channels, null, 2),
+            },
+          ],
+        };
+      }
+
+      case 'getChannel': {
+        if (!args || typeof args.id !== 'string') {
+          throw new Error('Channel ID is required');
+        }
+        const channel = await channelTools.getChannel(args.id);
+        if (!channel) {
+          throw new Error(`Channel not found: ${args.id}`);
+        }
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(channel, null, 2),
             },
           ],
         };

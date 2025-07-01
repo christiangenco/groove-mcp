@@ -1,23 +1,24 @@
 export const CONVERSATION_FIELDS = `
   id
   number
-  status
+  state
   subject
-  summary
   createdAt
   updatedAt
-  closedAt
-  snoozedUntil
-  messageCount
-  noteCount
-  assignee {
-    id
-    email
-    name
-    firstName
-    lastName
-    role
-    available
+  stateUpdatedAt
+  assigned {
+    agent {
+      id
+      email
+      name
+      firstName
+      lastName
+    }
+    team {
+      id
+      name
+    }
+    at
   }
   contact {
     id
@@ -25,12 +26,32 @@ export const CONVERSATION_FIELDS = `
     name
     firstName
     lastName
-    company
-    title
+  }
+  counts {
+    messages
+    notes
+    interactions
+    attachments
+    stateChanges
   }
   tags {
+    nodes {
+      id
+      name
+    }
+  }
+  snoozed {
+    by {
+      id
+      email
+    }
+    until
+  }
+  starred
+  channel {
     id
     name
+    type
     color
   }
 `;
@@ -74,11 +95,17 @@ export const CONTACT_FIELDS = `
   name
   firstName
   lastName
-  company
-  title
-  phone
+  avatarUrl
+  contactType
+  conversationCount
   createdAt
   updatedAt
+  companies {
+    nodes {
+      id
+      name
+    }
+  }
 `;
 
 const AGENT_FIELDS = `
@@ -136,18 +163,14 @@ export const queries = {
     query ListConversations(
       $first: Int
       $after: String
-      $status: ConversationStatus
-      $assigneeId: ID
-      $contactId: ID
-      $tagIds: [ID!]
+      $filter: ConversationFilter
+      $orderBy: ConversationOrder
     ) {
       conversations(
         first: $first
         after: $after
-        status: $status
-        assigneeId: $assigneeId
-        contactId: $contactId
-        tagIds: $tagIds
+        filter: $filter
+        orderBy: $orderBy
       ) {
         edges {
           node {
@@ -268,25 +291,11 @@ export const queries = {
 };
 
 export const mutations = {
-  createConversation: `
-    mutation CreateConversation($input: CreateConversationInput!) {
-      createConversation(input: $input) {
-        conversation {
-          ${CONVERSATION_FIELDS}
-        }
-      }
-    }
-  `,
-
-  updateConversation: `
-    mutation UpdateConversation($id: ID!, $input: UpdateConversationInput!) {
-      updateConversation(id: $id, input: $input) {
-        conversation {
-          ${CONVERSATION_FIELDS}
-        }
-      }
-    }
-  `,
+  // Note: Conversation mutations are not currently available in the Groove GraphQL API
+  // The Inbox API is still being built by Groove
+  
+  // createConversation: Not available
+  // updateConversation: Not available
 
   sendMessage: `
     mutation SendMessage($conversationId: ID!, $input: SendMessageInput!) {

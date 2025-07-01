@@ -4,32 +4,20 @@ A Model Context Protocol (MCP) server for Groove HQ, providing access to custome
 
 ## Installation
 
+Get your GROOVE_API_TOKEN from https://YOUR_SUBDOMAIN.groovehq.com/settings/developer/api?tat-cursor=1&tat-entityType=accessToken&tat-pageSize=9999
+
+Then add the Groove MCP server to Claude Code:
+
 ```bash
-npm install
-npm run build
+claude mcp add groove-mcp npx groove-mcp -s user --env GROOVE_API_TOKEN=your_groove_api_token_here
 ```
 
-## Configuration
+You can also optionally set the `GROOVE_API_URL` as an environment variable (defaults to `https://api.groovehq.com/v2/graphql`).
 
-Create a `.env` file with your Groove API credentials:
+If you'd like to run it locally, clone this repo and then run:
 
-```bash
-GROOVE_API_TOKEN=your_groove_api_token_here
-GROOVE_API_URL=https://api.groovehq.com/v2/graphql  # Optional, this is the default
 ```
-
-## Usage
-
-Run the server:
-
-```bash
-npm start
-```
-
-Or use it with an MCP client by pointing to the executable:
-
-```bash
-node dist/index.js
+claude mcp add groove-mcp node ~/path/to/groove-mcp/index.js -s user --env GROOVE_API_TOKEN=your_groove_api_token_here
 ```
 
 ## Available Tools
@@ -37,6 +25,7 @@ node dist/index.js
 ### Conversation Management
 
 - **listConversations** - List conversations with optional filters
+
   - `status`: Filter by status (unread, opened, closed, snoozed)
   - `assigneeId`: Filter by assigned agent ID
   - `contactId`: Filter by contact ID
@@ -44,9 +33,11 @@ node dist/index.js
   - `limit`: Maximum number of conversations to return (default: 20)
 
 - **getConversation** - Get detailed information about a specific conversation
+
   - `id`: The conversation ID (required)
 
 - **createConversation** - Create a new conversation
+
   - `contactId`: ID of the contact (required)
   - `subject`: Subject of the conversation (required)
   - `body`: Initial message body (required)
@@ -54,6 +45,7 @@ node dist/index.js
   - `tagIds`: Tag IDs to apply
 
 - **updateConversation** - Update a conversation
+
   - `id`: The conversation ID (required)
   - `status`: New status (opened, closed, snoozed)
   - `assigneeId`: ID of agent to assign to
@@ -66,11 +58,13 @@ node dist/index.js
 ### Message Operations
 
 - **listMessages** - List messages in a conversation
+
   - `conversationId`: The conversation ID to list messages for (required)
   - `limit`: Maximum number of messages to return (default: 50)
   - `after`: Cursor for pagination
 
 - **sendMessage** - Send a message in a conversation
+
   - `conversationId`: The conversation ID to send message to (required)
   - `body`: The message body content (required)
   - `attachmentIds`: IDs of attachments to include
@@ -82,14 +76,17 @@ node dist/index.js
 ### Contact Management
 
 - **listContacts** - List contacts with optional search
+
   - `search`: Search string to filter contacts
   - `limit`: Maximum number of contacts to return (default: 20)
   - `after`: Cursor for pagination
 
 - **getContact** - Get detailed information about a specific contact
+
   - `id`: The contact ID (required)
 
 - **createContact** - Create a new contact
+
   - `email`: Contact email address (required)
   - `firstName`: Contact first name
   - `lastName`: Contact last name
@@ -111,6 +108,7 @@ node dist/index.js
 - **listAgents** - List all agents in the organization
 
 - **getAgent** - Get detailed information about a specific agent
+
   - `id`: The agent ID (required)
 
 - **getAvailableAgents** - List all available agents

@@ -1,18 +1,49 @@
+export interface Channel {
+  __typename: string;
+  id: string;
+  name: string;
+  type: 'EMAIL' | 'TWITTER' | 'FACEBOOK' | 'WIDGET' | 'API' | 'CHAT' | 'FORWARDING';
+  conversationCount: number;
+  color: string;
+  state: 'ACTIVE' | 'INACTIVE' | 'DELETED';
+  senderName?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Conversation {
   id: string;
   number: number;
-  status: 'unread' | 'opened' | 'closed' | 'snoozed';
-  subject: string;
-  summary?: string;
+  state: 'UNREAD' | 'OPENED' | 'CLOSED' | 'SNOOZED' | 'DELETED' | 'SPAM' | 'TRASH';
+  subject?: string;
   createdAt: string;
   updatedAt: string;
-  closedAt?: string;
-  snoozedUntil?: string;
-  assignee?: Agent;
-  contact: Contact;
-  tags: Tag[];
-  messageCount: number;
-  noteCount: number;
+  stateUpdatedAt?: string;
+  assigned?: {
+    agent?: Agent;
+    team?: Team;
+    at?: string;
+  };
+  contact?: Contact;
+  counts: {
+    messages: number;
+    notes: number;
+    interactions: number;
+    attachments: number;
+    stateChanges: number;
+  };
+  tags: {
+    nodes: Tag[];
+  };
+  snoozed?: {
+    by?: {
+      id: string;
+      email: string;
+    };
+    until?: string;
+  };
+  starred: boolean;
+  channel?: Channel;
 }
 
 export interface Message {
@@ -29,16 +60,21 @@ export interface Message {
 
 export interface Contact {
   id: string;
-  email: string;
+  email?: string;
   name?: string;
   firstName?: string;
   lastName?: string;
-  company?: string;
-  title?: string;
-  phone?: string;
+  avatarUrl?: string;
+  contactType?: string;
+  conversationCount?: number;
   createdAt: string;
   updatedAt: string;
-  customFields?: Record<string, any>;
+  companies?: {
+    nodes: Array<{
+      id: string;
+      name: string;
+    }>;
+  };
 }
 
 export interface Agent {
@@ -52,10 +88,15 @@ export interface Agent {
   available: boolean;
 }
 
+export interface Team {
+  id: string;
+  name: string;
+}
+
 export interface Tag {
   id: string;
   name: string;
-  color: string;
+  color?: string;
 }
 
 export interface Attachment {

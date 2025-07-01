@@ -1,19 +1,20 @@
 {
-  "name": "groove-mcp-server",
+  "name": "groove-mcp",
   "version": "0.1.0",
   "description": "Model Context Protocol server for Groove HQ",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "groove-mcp-server": "dist/index.js"
+    "groove-mcp": "dist/index.js"
   },
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "tsc --watch",
-    "test": "jest",
+    "test": "jest --passWithNoTests",
     "lint": "eslint src/**/*.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build && npm test"
   },
   "keywords": [
     "mcp",
@@ -21,7 +22,23 @@
     "customer-support",
     "help-desk"
   ],
-  "author": "",
+  "author": "Christian Genco <christian@gen.co>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/christiangenco/groove-mcp.git"
+  },
+  "homepage": "https://github.com/christiangenco/groove-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/christiangenco/groove-mcp/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
